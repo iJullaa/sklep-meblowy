@@ -27,3 +27,11 @@ export const protect = async (req, res, next) => {
         res.status(401).json({ message: 'Nieautoryzowany, brak tokenu' });
     }
 };
+
+export const admin = (req, res, next) => {
+    if (req.user && req.user.role === 'ADMIN') {
+        next();
+    } else {
+        res.status(403).json({ message: 'Brak dostępu, wymagane uprawnienia administratora' });
+    }
+};
