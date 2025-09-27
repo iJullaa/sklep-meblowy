@@ -50,3 +50,46 @@ export const getProductById = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const { name, price, description, imageUrl, stock } = req.body;
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        name,
+        price: price ? parseFloat(price) : undefined,
+        description,
+        imageUrl,
+        stock: stock ? parseInt(stock) : undefined,
+      },
+    });
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Nie znaleziono produktu' });
+    }
+    next(error);
+  }
+};
+
+export const deleteProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    await prisma.product.delete({
+      where: {
+        id: productId,
+      },
+    });
+    res.status(200).json({ message: 'Produkt został usunięty' });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Nie znaleziono produktu' });
+    }
+    next(error);
+  }
+};
