@@ -62,3 +62,7 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMe = async (req, res, next) => {
+  res.status(200).json(req.user);
+};
