@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "migrate": "npx prisma migrate dev",
-    "postinstall": "prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "type": "module",
   "keywords": [],
