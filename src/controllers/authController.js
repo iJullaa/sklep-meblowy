@@ -1,13 +1,14 @@
 import prisma from '../config/prisma.js';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../utils/jwt.js';
+import ApiError from '../utils/ApiError.js';
 
 export const registerUser = async (req, res, next) => {
   try {
     const { email, password, name } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Proszę podać email i hasło' });
+      throw new ApiError(400, 'Proszę podać email i hasło');
     }
 
     const userExists = await prisma.user.findUnique({
@@ -15,7 +16,7 @@ export const registerUser = async (req, res, next) => {
     });
 
     if (userExists) {
-      return res.status(400).json({ message: 'Użytkownik o tym emailu już istnieje' });
+      throw new ApiError(400, 'Użytkownik o tym emailu już istnieje');
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -54,9 +55,8 @@ export const loginUser = async (req, res, next) => {
         name: user.name,
         token: generateToken(user.id),
       });
-    }
-    else {
-      res.status(401).json({ message: 'Nieprawidłowy email lub hasło' });
+    } else {
+      throw new ApiError(401, 'Nieprawidłowy email lub hasło');
     }
   } catch (error) {
     next(error);
