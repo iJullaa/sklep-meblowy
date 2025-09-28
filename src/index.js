@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './api/index.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -25,4 +26,13 @@ app.listen(PORT, () => {
   console.log(`Serwer działa na porcie ${PORT}`);
 });
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: true, 
+  legacyHeaders: false, 
+  message: 'Zbyt wiele zapytań z tego adresu IP, spróbuj ponownie za 15 minut',
+});
+
+app.use('/api', limiter);
 
