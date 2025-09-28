@@ -83,3 +83,44 @@ export const getMyOrders = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+    res.status(200).json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ message: 'Status jest wymagany' });
+    }
+    const order = await prisma.order.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
+    res.status(200).json(order);
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Nie znaleziono zamówienia' });
+    }
+    next(error);
+  }
+};
