@@ -47,3 +47,27 @@ export const createOrder = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMyOrders = async (req, res, next) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
