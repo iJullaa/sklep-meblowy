@@ -2,11 +2,18 @@ import prisma from "../config/prisma.js";
 
 export const getProducts = async (req, res, next) => {
   try {
+    const { category } = req.query;
+    const whereClause = {};
+    if (category) {
+      whereClause.categoryId = category;
+    }
     const products = await prisma.product.findMany({
+      where: whereClause,
       include: {
         category: true,
       },
     });
+
     res.status(200).json(products);
   } catch (error) {
     next(error);
