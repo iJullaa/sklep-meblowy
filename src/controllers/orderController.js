@@ -2,7 +2,7 @@ import prisma from '../config/prisma.js';
 
 export const createOrder = async (req, res, next) => {
   try {
-    const { orderItems } = req.body; 
+    const { orderItems } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: 'Brak produktów w zamówieniu' });
@@ -14,6 +14,8 @@ export const createOrder = async (req, res, next) => {
     });
 
     let totalPrice = 0;
+    const stockUpdates = []; 
+
     for (const item of orderItems) {
       const product = productsFromDb.find((p) => p.id === item.productId);
       if (!product) {
@@ -23,24 +25,34 @@ export const createOrder = async (req, res, next) => {
         return res.status(400).json({ message: `Niewystarczająca ilość produktu: ${product.name}` });
       }
       totalPrice += product.price * item.quantity;
+
+      stockUpdates.push(
+        prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } }, 
+        })
+      );
     }
 
-    const order = await prisma.order.create({
-      data: {
-        userId: req.user.id,
-        total: totalPrice,
-        items: {
-          create: orderItems.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: productsFromDb.find((p) => p.id === item.productId).price,
-          })),
+    const [order] = await prisma.$transaction([
+      prisma.order.create({
+        data: {
+          userId: req.user.id,
+          total: totalPrice,
+          items: {
+            create: orderItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: productsFromDb.find((p) => p.id === item.productId).price,
+            })),
+          },
         },
-      },
-      include: {
-        items: true,
-      },
-    });
+        include: {
+          items: true,
+        },
+      }),
+      ...stockUpdates,
+    ]);
 
     res.status(201).json(order);
   } catch (error) {
