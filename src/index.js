@@ -5,6 +5,7 @@ import apiRoutes from './api/index.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import compression from 'compression';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
+app.use(compression());
 
 app.get('/', (req, res) => {
   res.send('API sklepu meblowego działa!');
